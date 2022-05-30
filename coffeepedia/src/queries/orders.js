@@ -26,6 +26,31 @@ export const GET_ORDER_BY_ID = gql`
   }
 `;
 
+export const GET_ALL_ORDER = gql`
+  query GetAllOrder($accesstoken: String) {
+    getAllOrder(accesstoken: $accesstoken) {
+      id
+      UserId
+      CoffeeShopId
+      status
+      createdAt
+      updatedAt
+      OrderDetails {
+        id
+        ItemId
+        OrderId
+        name
+        price
+        quantity
+        imageUrl
+        createdAt
+        updatedAt
+      }
+      errorText
+    }
+  }
+`;
+
 export const UPDATE_STATUS_ORDER = gql`
   mutation UpdateOrder(
     $updateOrderId: ID
@@ -89,6 +114,44 @@ export const DELETE_ORDER_ITEM = gql`
   mutation DeleteOrderDetail($accesstoken: String, $deleteOrderDetailId: ID) {
     DeleteOrderDetail(accesstoken: $accesstoken, id: $deleteOrderDetailId) {
       message
+    }
+  }
+`;
+
+export const ADD_ORDER = gql`
+  mutation AddOrder($addOrderId: String, $accesstoken: String) {
+    AddOrder(id: $addOrderId, accesstoken: $accesstoken) {
+      message
+      User {
+        id
+        email
+        password
+        username
+        phoneNumber
+        address
+        balance
+        accesstoken
+      }
+      Order {
+        id
+        UserId
+        CoffeeShopId
+        status
+        createdAt
+        updatedAt
+        OrderDetails {
+          id
+          ItemId
+          OrderId
+          name
+          price
+          quantity
+          imageUrl
+          createdAt
+          updatedAt
+        }
+        errorText
+      }
     }
   }
 `;

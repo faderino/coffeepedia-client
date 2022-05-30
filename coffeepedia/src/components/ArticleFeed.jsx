@@ -2,6 +2,8 @@ import { useQuery } from "@apollo/client";
 import { useNavigate } from "react-router-dom";
 import { GET_ARTICLES } from "../queries/articles";
 import ArticleList from "./ArticleList";
+import DropdownMenu from "./DropdownMenu";
+import Loading from "./Loading";
 
 export default function ArticleFeed() {
   const { loading, error, data } = useQuery(GET_ARTICLES);
@@ -11,10 +13,11 @@ export default function ArticleFeed() {
     <section className="min-h-screen bg-s-light">
       {/* Header */}
       {loading ? (
-        <p>Loading ... </p>
+        <Loading />
       ) : (
         <>
-          <header className="sticky top-0 z-10 bg-p-dark shadow-md">
+          <DropdownMenu />
+          <header className="bg-p-dark pt-6 shadow-md">
             <nav className="flex justify-between py-2 px-6">
               <svg
                 xmlns="http://www.w3.org/2000/svg"
@@ -66,7 +69,7 @@ export default function ArticleFeed() {
               {data.getAllArticle.slice(0, 3).map((article) => (
                 <div
                   key={article._id}
-                  onClick={() => navigate(`/articles/${article.id}`)}
+                  onClick={() => navigate(`/articles/${article._id}`)}
                   className="mb-6 inline-block w-4/5 shrink-0 cursor-pointer snap-center "
                 >
                   <div className="relative overflow-hidden rounded-2xl">
@@ -79,23 +82,8 @@ export default function ArticleFeed() {
                         {article.title}
                       </h1>
 
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        className="inline-block h-5 w-5 rounded-full bg-primary stroke-white p-[2px]"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        stroke="currentColor"
-                        strokeWidth={1}
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
-                        />
-                      </svg>
-
                       <span className="ml-2 text-xs text-white">
-                        {article.author}
+                        by {article.author}
                       </span>
                     </div>
 
@@ -111,7 +99,7 @@ export default function ArticleFeed() {
           </section>
 
           {/* Article List */}
-          <ArticleList articles={data.getAllArticle} />
+          <ArticleList articles={data.getAllArticle.slice(3)} />
         </>
       )}
     </section>

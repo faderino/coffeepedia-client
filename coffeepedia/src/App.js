@@ -12,11 +12,12 @@ import RegisterPage from "./views/RegisterPage";
 import MenuDetailPage from "./views/MenuDetailPage";
 import CoffeeShopDetailPage from "./views/CoffeeShopDetailPage";
 import OrderTrackingPage from "./views/OrderTrackingPage";
+import OrderHistoryPage from "./views/OrderHistoryPage";
 
 function App() {
   return (
     <div className="App flex justify-center bg-gray-200">
-      <div className="w-[620px]">
+      <div className="h-full w-[620px]">
         <Routes>
           <Route path="/" element={<OnboardingPage />} />
           <Route path="/register" element={<RegisterPage />} />
@@ -31,6 +32,15 @@ function App() {
           <Route path="/detail/:id" element={<MenuDetailPage />} />
           <Route path="/coffeeshops/:id" element={<CoffeeShopDetailPage />} />
           <Route path="/order/:id" element={<OrderTrackingPage />} />
+          <Route path="/order/history" element={<OrderHistoryPage />} />
+          <Route
+            path="*"
+            element={
+              <p className="cursor-default py-20 text-center text-2xl">
+                There's nothing here: <span className="underline">404!</span>
+              </p>
+            }
+          />
         </Routes>
       </div>
     </div>

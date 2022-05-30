@@ -1,14 +1,30 @@
+import { useMutation } from "@apollo/client";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import LoadingSmall from "../components/LoadingSmall";
+import { LOGIN_USER } from "../queries/users";
 
 export default function LoginPage() {
   const navigate = useNavigate();
 
   const [data, setData] = useState({ email: "", password: "" });
+  const [afterLogin, setAfterLogin] = useState("");
+
+  const [loginUser, { loading }] = useMutation(LOGIN_USER, {
+    onCompleted: (data) => {
+      if (data.LoginUser.id) {
+        localStorage.setItem("accesstoken", data.LoginUser.accesstoken);
+        localStorage.setItem("email", data.LoginUser.email);
+        navigate("/radar", { replace: true });
+      } else {
+        setAfterLogin("error");
+      }
+    },
+  });
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    console.log(data);
+    loginUser({ variables: data });
   };
 
   return (
@@ -86,12 +102,25 @@ export default function LoginPage() {
             Forgot password?
           </div>
 
-          <input
-            onClick={handleSubmit}
-            type="submit"
-            value="Login"
-            className="mb-2 w-full cursor-pointer rounded-3xl bg-p-dark py-2 text-white"
-          />
+          {afterLogin === "error" && (
+            <div className="mb-8 cursor-pointer text-center text-sm font-bold text-red-600">
+              Email or Password invalid
+            </div>
+          )}
+
+          {loading ? (
+            <button className="mb-2 w-full cursor-pointer rounded-3xl bg-p-dark py-2 text-white">
+              <LoadingSmall />
+            </button>
+          ) : (
+            <input
+              onClick={handleSubmit}
+              type="submit"
+              value="Login"
+              className="mb-2 w-full cursor-pointer rounded-3xl bg-p-dark py-2 text-white"
+            />
+          )}
+
           <div className="text-center text-sm">
             Don't have an account?{" "}
             <span

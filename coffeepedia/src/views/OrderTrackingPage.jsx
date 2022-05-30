@@ -1,18 +1,33 @@
 import { useMutation, useQuery } from "@apollo/client";
+import axios from "axios";
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import preparing from "../assets/svg/preparing.svg";
 import sent from "../assets/svg/sent.svg";
+import DropdownMenu from "../components/DropdownMenu";
+import Loading from "../components/Loading";
 import { GET_ORDER_BY_ID, UPDATE_STATUS_ORDER } from "../queries/orders";
 
 export default function OrderTrackingPage() {
+  const { id } = useParams();
   const getOrderByIdVariables = {
     accesstoken: localStorage.accesstoken,
-    getOrderByIdId: localStorage.OrderId,
+    getOrderByIdId: id,
   };
+
+  const [coffeeShop, setCoffeeShop] = useState({});
 
   const { loading, error, data, refetch } = useQuery(GET_ORDER_BY_ID, {
     variables: getOrderByIdVariables,
+    onCompleted: (data) => {
+      axios
+        .get(
+          "https://cfpd-service-coffee-shops.herokuapp.com/maps/placeDetail?place_id=" +
+            data.getOrderById.CoffeeShopId
+        )
+        .then(({ data }) => setCoffeeShop(data))
+        .catch((error) => console.log(error));
+    },
   });
 
   useEffect(() => {
@@ -21,7 +36,6 @@ export default function OrderTrackingPage() {
       data?.getOrderById.status !== "delivered"
     ) {
       setInterval(() => {
-        console.log("terpanggil");
         refetch();
       }, 5000);
     }
@@ -30,9 +44,9 @@ export default function OrderTrackingPage() {
   const navigate = useNavigate();
 
   const getTotalPrice = () => {
-    return data.getOrderById.OrderDetails.map((order) => order.price).reduce(
-      (total, price) => total + price
-    );
+    return data.getOrderById.OrderDetails.map(
+      (order) => order.price * order.quantity
+    ).reduce((total, price) => total + price);
   };
 
   const done = (
@@ -67,15 +81,16 @@ export default function OrderTrackingPage() {
   };
 
   if (loading) {
-    return <p>Loading...</p>;
+    return <Loading />;
   } else if (error) {
     return <p>Error...</p>;
   }
 
   return (
-    <section className="flex h-full min-h-screen w-screen max-w-[620px] flex-col">
+    <section className="flex h-screen min-h-screen w-screen max-w-[620px] flex-col">
+      <DropdownMenu />
       {/* Top Half */}
-      <section className="min-h-1/2 h-1/2 w-full bg-p-dark">
+      <section className="h-1/2 min-h-[250px] w-full bg-p-dark">
         {/* Head Nav */}
         <header className="relative py-4">
           <svg
@@ -102,35 +117,15 @@ export default function OrderTrackingPage() {
       {/* Bottom Half */}
       <section className="h-full w-full bg-s-light px-6 pb-6">
         {/* Order Details */}
-        <div className="-mb-6 -translate-y-24 rounded-2xl bg-[#f5f5f5] p-6 shadow-md">
+        <div className="-mb-6 -translate-y-32 rounded-2xl bg-[#f5f5f5] p-6 shadow-md">
           <div className="mb-2 border-b-2 pb-2">
             <div className="flex items-center space-x-2">
-              {/* <svg
-                xmlns="http://www.w3.org/2000/svg"
-                className="h-6 w-6 fill-orange-800"
-                viewBox="0 0 20 20"
-                fill="currentColor"
-              >
-                <path d="M10.707 2.293a1 1 0 00-1.414 0l-7 7a1 1 0 001.414 1.414L4 10.414V17a1 1 0 001 1h2a1 1 0 001-1v-2a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 001 1h2a1 1 0 001-1v-6.586l.293.293a1 1 0 001.414-1.414l-7-7z" />
-              </svg> */}
-              <h1 className="mb-1 text-xl font-bold">Kene Coffee House</h1>
+              <h1 className="mb-1 text-xl font-bold">{coffeeShop.name}</h1>
             </div>
 
             <div className="flex items-center space-x-3">
-              {/* <svg
-                xmlns="http://www.w3.org/2000/svg"
-                className="h-6 w-6 fill-p-dark"
-                viewBox="0 0 20 20"
-                fill="currentColor"
-              >
-                <path
-                  fillRule="evenodd"
-                  d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z"
-                  clipRule="evenodd"
-                />
-              </svg> */}
               <p className="text-xs font-semibold text-gray-600">
-                Jl. Kaliwaru No.84, Kaliwaru, Condongcatur, Kabupaten Sleman
+                {coffeeShop.vicinity}
               </p>
             </div>
           </div>
@@ -144,7 +139,9 @@ export default function OrderTrackingPage() {
                 <span className="text-primary">{order.quantity + "x"}</span>
                 <span className="">{order.name}</span>
               </div>
-              <span className="text-sm font-semibold">IDR {order.price}</span>
+              <span className="text-sm font-semibold">
+                IDR {order.price * order.quantity}
+              </span>
             </div>
           ))}
 
@@ -157,7 +154,7 @@ export default function OrderTrackingPage() {
         </div>
 
         {/* Card Tracker */}
-        <div className="-translate-y-10 rounded-2xl bg-[#f5f5f5] shadow-lg">
+        <div className="-translate-y-20 rounded-2xl bg-[#f5f5f5] shadow-lg">
           {/* Order Id */}
           <div className="mb-4 border-b-2 px-6 pt-6 pb-4">
             <div className="flex items-center justify-between">
@@ -186,7 +183,8 @@ export default function OrderTrackingPage() {
 
             {/* Ready */}
             <div className="flex space-x-4">
-              {data.getOrderById.status === "paid" ? (
+              {data.getOrderById.status === "paid" ||
+              data.getOrderById.status === "unpaid" ? (
                 <img
                   src={preparing}
                   alt="preparing"
